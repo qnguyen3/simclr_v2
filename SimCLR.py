@@ -66,7 +66,7 @@ class SimCLR(LightningModule):
         batch_size: int = 32,
         gpus: int = 1,
         num_nodes: int = 1,
-        arch: str = 'resnet18', #
+        arch: str = 'resnet50', #
         hidden_mlp: int = 2048, #
         feat_dim: int = 128,
         warmup_epochs: int = 10,
@@ -74,10 +74,10 @@ class SimCLR(LightningModule):
         temperature: float = 0.1,
         mode: str = None,
         maxpool1: bool = True,
-        optimizer: str = 'lars',
+        optimizer: str = 'adam',
         exclude_bn_bias: bool = False,
         start_lr: float = 0.,
-        learning_rate: float = 1e-3,
+        learning_rate: float = 3e-4,
         final_lr: float = 0.,
         weight_decay: float = 1e-6,
         **kwargs
@@ -121,9 +121,9 @@ class SimCLR(LightningModule):
             self.batch_norm1d = nn.BatchNorm1d(self.hidden_mlp)
             self.projection = Projection(input_dim=self.hidden_mlp, hidden_dim=self.hidden_mlp, output_dim=self.feat_dim)
         elif arch == 'resnet18':
-            self.features = nn.Linear(512, 512) #First Projection Head
-            self.batch_norm1d = nn.BatchNorm1d(512)
-            self.projection = Projection(input_dim=512, hidden_dim=512, output_dim=self.feat_dim)
+            self.features = nn.Linear(512, self.hidden_mlp) #First Projection Head
+            self.batch_norm1d = nn.BatchNorm1d(self.hidden_mlp)
+            self.projection = Projection(input_dim=self.hidden_mlp, hidden_dim=self.hidden_mlp, output_dim=self.feat_dim)
 
         global_batch_size = self.num_nodes * self.gpus * self.batch_size if self.gpus > 0 else self.batch_size
         self.train_iters_per_epoch = self.num_samples // global_batch_size
@@ -144,7 +144,6 @@ class SimCLR(LightningModule):
         x, y = batch
         batch_size = y.shape[0]//2
         features = self(x)
-        features = self.features(features)
         features = F.relu(self.batch_norm1d(features))
         features = self.projection(features)
         # f1, f2 = torch.split(features, (batch_size,batch_size), dim=0)
@@ -166,10 +165,11 @@ class SimCLR(LightningModule):
         self.log('val_loss', loss, on_step=False, prog_bar=True, on_epoch=True, sync_dist=True)
         return {"loss": loss}
     
-    def validation_end(self, outputs):
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
-        self.log('val_avg_loss', loss, on_step=False, prog_bar=True, on_epoch=True, sync_dist=True)
-        return {'val_loss': avg_loss, 'log': {'Loss/valid': avg_loss}}
+    def training_epoch_end(self, outputs):
+        print('training end: \n')
+        avg_loss = torch.stack([x['train_loss'] for x in outputs]).mean()
+        self.log('avg_train_loss', avg_loss, on_step=False, sync_dist=True)
+        return {'avg_train_loss': avg_loss, 'log': {'Loss/avg_train_loss': avg_loss}}
 
     def loss_function(self, x):
         loss_fn = ContrastiveLoss()
@@ -186,7 +186,6 @@ class SimCLR(LightningModule):
         if self.optim == 'lars':
             optimizer = LARS(
                 params,
-                lr=self.learning_rate*10,
                 momentum=0.9,
                 weight_decay=self.weight_decay,
                 trust_coefficient=0.001,
