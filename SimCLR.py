@@ -66,15 +66,15 @@ class SimCLR(LightningModule):
         batch_size: int = 32,
         gpus: int = 1,
         num_nodes: int = 1,
-        arch: str = 'resnet50',
-        hidden_mlp: int = 2048,
+        arch: str = 'resnet18', #
+        hidden_mlp: int = 2048, #
         feat_dim: int = 128,
         warmup_epochs: int = 10,
         max_epochs: int = 100,
         temperature: float = 0.1,
         mode: str = None,
         maxpool1: bool = True,
-        optimizer: str = 'adam',
+        optimizer: str = 'lars',
         exclude_bn_bias: bool = False,
         start_lr: float = 0.,
         learning_rate: float = 1e-3,
@@ -116,9 +116,14 @@ class SimCLR(LightningModule):
         self.max_epochs = max_epochs
 
         self.encoder = self.init_model()
-        self.features = nn.Linear(self.hidden_mlp, self.hidden_mlp) #First Projection Head
-        self.batch_norm1d = nn.BatchNorm1d(self.hidden_mlp)
-        self.projection = Projection(input_dim=self.hidden_mlp, hidden_dim=self.hidden_mlp, output_dim=self.feat_dim)
+        if arch = 'resnet50':
+            self.features = nn.Linear(self.hidden_mlp, self.hidden_mlp) #First Projection Head
+            self.batch_norm1d = nn.BatchNorm1d(self.hidden_mlp)
+            self.projection = Projection(input_dim=self.hidden_mlp, hidden_dim=self.hidden_mlp, output_dim=self.feat_dim)
+        elif arch = 'resnet18':
+            self.features = nn.Linear(512, 512) #First Projection Head
+            self.batch_norm1d = nn.BatchNorm1d(512)
+            self.projection = Projection(input_dim=512, hidden_dim=512, output_dim=self.feat_dim)
 
         global_batch_size = self.num_nodes * self.gpus * self.batch_size if self.gpus > 0 else self.batch_size
         self.train_iters_per_epoch = self.num_samples // global_batch_size
@@ -137,10 +142,13 @@ class SimCLR(LightningModule):
 
     def shared_step(self, batch):
         x, y = batch
+        batch_size = y.shape[0]//2
         features = self(x)
         features = self.features(features)
         features = F.relu(self.batch_norm1d(features))
         features = self.projection(features)
+        # f1, f2 = torch.split(features, (batch_size,batch_size), dim=0)
+        # features = torch.cat([f1.unsqueeze(1), f2.unsqueeze(1)], dim=1)
         features = features.unsqueeze(0)
         loss = self.loss_function(features)
 
@@ -164,6 +172,7 @@ class SimCLR(LightningModule):
         loss = loss_fn(x)
         return loss
     
+    
     def configure_optimizers(self):
         if self.exclude_bn_bias:
             params = self.exclude_from_wt_decay(self.named_parameters(), weight_decay=self.weight_decay)
@@ -173,13 +182,15 @@ class SimCLR(LightningModule):
         if self.optim == 'lars':
             optimizer = LARS(
                 params,
-                lr=self.learning_rate,
+                lr=self.learning_rate*10,
                 momentum=0.9,
                 weight_decay=self.weight_decay,
                 trust_coefficient=0.001,
             )
         elif self.optim == 'adam':
             optimizer = torch.optim.Adam(params, lr=self.learning_rate, weight_decay=self.weight_decay)
+        elif self.optim == 'adamw':
+            optimizer = torch.optim.AdamW(params, weight_decay=self.weight_decay)
 
         warmup_steps = self.train_iters_per_epoch * self.warmup_epochs
         total_steps = self.train_iters_per_epoch * self.max_epochs
@@ -193,7 +204,7 @@ class SimCLR(LightningModule):
             "frequency": 1,
         }
 
-        return [optimizer], [scheduler]
+        return {"optimizer": optimizer, "lr_scheduler": scheduler}
 
 
     
