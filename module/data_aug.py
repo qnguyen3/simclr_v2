@@ -8,7 +8,7 @@ def train_transform(size=224):
                                           transforms.RandomApply([color_jitter], p=0.8),
                                           transforms.RandomGrayscale(p=0.2),
                                           color_jitter,
-                                        #   GaussianBlur(kernel_size=int(0.1 * size), p=0.5),
+                                          transforms.GaussianBlur(kernel_size=(5,9), sigma=(0.1, 2.0)),
                                           transforms.ToTensor(),
                                           transforms.Normalize(mean=[x / 255.0 for x in [125.3, 123.0, 113.9]],std=[x / 255.0 for x in [63.0, 62.1, 66.7]])])
     return data_transforms

@@ -116,11 +116,11 @@ class SimCLR(LightningModule):
         self.max_epochs = max_epochs
 
         self.encoder = self.init_model()
-        if arch = 'resnet50':
+        if arch == 'resnet50':
             self.features = nn.Linear(self.hidden_mlp, self.hidden_mlp) #First Projection Head
             self.batch_norm1d = nn.BatchNorm1d(self.hidden_mlp)
             self.projection = Projection(input_dim=self.hidden_mlp, hidden_dim=self.hidden_mlp, output_dim=self.feat_dim)
-        elif arch = 'resnet18':
+        elif arch == 'resnet18':
             self.features = nn.Linear(512, 512) #First Projection Head
             self.batch_norm1d = nn.BatchNorm1d(512)
             self.projection = Projection(input_dim=512, hidden_dim=512, output_dim=self.feat_dim)
@@ -157,15 +157,19 @@ class SimCLR(LightningModule):
     def training_step(self, batch, batch_idx):
         loss = self.shared_step(batch)
 
-        self.log('train_loss', loss, on_step=True, on_epoch=False)
-        return loss
+        self.log('train_loss', loss, on_step=True, prog_bar=True, on_epoch=False)
+        return {"loss": loss, 'log': {'Loss/train': loss}} 
 
     def validation_step(self, batch, batch_idx):
         loss = self.shared_step(batch)
 
-        self.log('val_loss', loss, on_step=False, on_epoch=True, sync_dist=True)
-        return loss
-
+        self.log('val_loss', loss, on_step=False, prog_bar=True, on_epoch=True, sync_dist=True)
+        return {"loss": loss}
+    
+    def validation_end(self, outputs):
+        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+        self.log('val_avg_loss', loss, on_step=False, prog_bar=True, on_epoch=True, sync_dist=True)
+        return {'val_loss': avg_loss, 'log': {'Loss/valid': avg_loss}}
 
     def loss_function(self, x):
         loss_fn = ContrastiveLoss()
