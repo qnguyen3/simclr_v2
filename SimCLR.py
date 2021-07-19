@@ -115,6 +115,8 @@ class SimCLR(LightningModule):
         self.warmup_epochs = warmup_epochs
         self.max_epochs = max_epochs
 
+        self.train_loss = []
+
         self.encoder = self.init_model()
         if arch == 'resnet50':
             self.features = nn.Linear(self.hidden_mlp, self.hidden_mlp) #First Projection Head
@@ -201,8 +203,11 @@ class SimCLR(LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss = self.shared_step(batch)
+        self.train_loss.append(loss)
 
         self.log('train_loss', loss, on_step=True, prog_bar=True, on_epoch=False)
+
+
         return {"loss": loss, 'log': {'Loss/train': loss}} 
 
     def validation_step(self, batch, batch_idx):
@@ -211,12 +216,14 @@ class SimCLR(LightningModule):
         self.log('val_loss', loss, on_step=False, prog_bar=True, on_epoch=True, sync_dist=True)
         return {"loss": loss}
     
-    def training_epoch_end(self, outputs):
+    def on_train_epoch_end(self):
         print('training end: \n')
+        avg_train_loss = sum(self.train_loss) / len(self.train_loss)
+        print("average train loss",avg_train_loss)
         # avg_loss = torch.stack([x['train_loss'] for x in outputs]).mean()
         # self.log('avg_train_loss', avg_loss, on_step=False, sync_dist=True)
         # return {'avg_train_loss': avg_loss, 'log': {'Loss/avg_train_loss': avg_loss}}
-        print(outputs['train_loss'])
+        self.log('avg_train_loss', avg_train_loss)
 
     def configure_optimizers(self):
         if self.exclude_bn_bias:

@@ -24,9 +24,9 @@ test_loader = DataLoader(dataset = test_data, batch_size = 16, shuffle = True, d
 valid_loader = DataLoader(dataset = val_data, batch_size= 16)
 
 checkpoint_callback = ModelCheckpoint(
-    monitor='train_loss',
+    monitor='avg_train_loss',
     dirpath='./models/',
-    filename='simclr-{epoch:02d}-{train_loss:.2f}',
+    filename='simclr-{epoch:02d}-{avg_train_loss:.2f}',
     mode='min',
 )
 
