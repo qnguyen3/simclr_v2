@@ -5,3 +5,12 @@ module/__pycache__/view_generator.cpython-38.pyc
 module/__pycache__/resnet.cpython-38.pyc
 module/__pycache__/GaussianBlur.cpython-38.pyc
 module/__pycache__/datasets.cpython-38.pyc
+cifar10/
+lightning_logs
+_pycache/
+models/
+logs.zip
+models.zip
+tempCodeRunnerFile.py
+__pycache__/ContrastiveLoss.cpython-38.pyc
+__pycache__/SimCLR.cpython-38.pyc
