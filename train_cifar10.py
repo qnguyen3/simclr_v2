@@ -8,13 +8,13 @@ from SimCLR import SimCLR
 import pytorch_lightning as pl
 from module.gaussian_blur import GaussianBlur
 from pytorch_lightning.callbacks import ModelCheckpoint
-from pl_bolts.models.self_supervised.simclr import SimCLRTrainDataTransform
+from pl_bolts.models.self_supervised.simclr import SimCLRTrainDataTransform, SimCLREvalDataTransform
 
 train_transform = train_transform(size=224)
 val_test_transform = val_test_transform(size=224)
 
 train_data = CIFAR10(download=True,root="./cifar10",transform=SimCLRTrainDataTransform())
-test_val_data = CIFAR10(root="./cifar10",train = False,transform=val_test_transform)
+test_val_data = CIFAR10(root="./cifar10",train = False,transform=SimCLREvalDataTransform())
 train_len = len(train_data)
 val_len = test_len = int(len(test_val_data)/2)
 test_data, val_data = torch.utils.data.random_split(test_val_data, [test_len, val_len])
