@@ -19,8 +19,8 @@ train_len = len(train_data)
 val_len = test_len = int(len(test_val_data)/2)
 test_data, val_data = torch.utils.data.random_split(test_val_data, [test_len, val_len])
 num_class = len(np.unique(train_data.targets))
-train_loader = DataLoader(dataset = train_data, batch_size = 16, shuffle = True, drop_last=True, pin_memory=True, num_workers=24)
-test_loader = DataLoader(dataset = test_data, batch_size = 16, shuffle = True, drop_last=True, pin_memory=False, num_workers=24)
+train_loader = DataLoader(dataset = train_data, batch_size = 16, shuffle = True, drop_last=True, pin_memory=False, num_workers=24)
+test_loader = DataLoader(dataset = test_data, batch_size = 16)
 valid_loader = DataLoader(dataset = val_data, batch_size= 16)
 
 checkpoint_callback = ModelCheckpoint(
@@ -32,5 +32,5 @@ checkpoint_callback = ModelCheckpoint(
 
 simclr = SimCLR(gpus=2)
 trainer = pl.Trainer(gpus=2, accelerator='ddp', callbacks=[checkpoint_callback])
-trainer.fit(simclr, test_loader)
+trainer.fit(simclr, train_loader)
 
