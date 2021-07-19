@@ -31,6 +31,6 @@ checkpoint_callback = ModelCheckpoint(
 )
 
 simclr = SimCLR(gpus=2, num_nodes=1)
-trainer = pl.Trainer(gpus=2, accelerator='ddp2', callbacks=[checkpoint_callback], num_nodes=1)
+trainer = pl.Trainer(gpus=2, accelerator='ddp', callbacks=[checkpoint_callback], num_nodes=1)
 trainer.fit(simclr, test_loader)
 

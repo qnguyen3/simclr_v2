@@ -216,7 +216,7 @@ class SimCLR(LightningModule):
         # avg_loss = torch.stack([x['train_loss'] for x in outputs]).mean()
         # self.log('avg_train_loss', avg_loss, on_step=False, sync_dist=True)
         # return {'avg_train_loss': avg_loss, 'log': {'Loss/avg_train_loss': avg_loss}}
-        print(outputs)
+        print(outputs['train_loss'])
 
     def configure_optimizers(self):
         if self.exclude_bn_bias:
