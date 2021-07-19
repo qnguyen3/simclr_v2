@@ -6,7 +6,7 @@ from torchvision.datasets import CIFAR10
 from torch.utils.data.dataloader import DataLoader
 from SimCLR import SimCLR
 import pytorch_lightning as pl
-from module.gaussian_blur import GaussianBlur
+
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pl_bolts.models.self_supervised.simclr import SimCLRTrainDataTransform, SimCLREvalDataTransform
 
