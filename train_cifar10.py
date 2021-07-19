@@ -28,6 +28,8 @@ checkpoint_callback = ModelCheckpoint(
     dirpath='./models/',
     filename='simclr-{epoch:02d}-{avg_train_loss:.2f}',
     mode='min',
+    save_last=True,
+    every_n_train_steps=10
 )
 
 simclr = SimCLR(gpus=2)
