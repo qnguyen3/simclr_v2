@@ -224,6 +224,7 @@ class SimCLR(LightningModule):
         # self.log('avg_train_loss', avg_loss, on_step=False, sync_dist=True)
         # return {'avg_train_loss': avg_loss, 'log': {'Loss/avg_train_loss': avg_loss}}
         self.log('avg_train_loss', avg_train_loss)
+        self.train_loss = []
 
     def configure_optimizers(self):
         if self.exclude_bn_bias:
