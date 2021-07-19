@@ -31,7 +31,7 @@ checkpoint_callback = ModelCheckpoint(
     filename='simclr_finetune-{epoch:02d}-{val_loss:.2f}',
     mode='min',
 )
-trainer = pl.Trainer(gpus=1,callbacks=[checkpoint_callback])
+trainer = pl.Trainer(gpus=2, accelerator='ddp',callbacks=[checkpoint_callback])
 trainer.fit(finetuner, train_loader, valid_loader)
 
 
