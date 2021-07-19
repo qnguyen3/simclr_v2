@@ -213,9 +213,10 @@ class SimCLR(LightningModule):
     
     def training_epoch_end(self, outputs):
         print('training end: \n')
-        avg_loss = torch.stack([x['train_loss'] for x in outputs]).mean()
-        self.log('avg_train_loss', avg_loss, on_step=False, sync_dist=True)
-        return {'avg_train_loss': avg_loss, 'log': {'Loss/avg_train_loss': avg_loss}}
+        # avg_loss = torch.stack([x['train_loss'] for x in outputs]).mean()
+        # self.log('avg_train_loss', avg_loss, on_step=False, sync_dist=True)
+        # return {'avg_train_loss': avg_loss, 'log': {'Loss/avg_train_loss': avg_loss}}
+        print(outputs)
 
     def configure_optimizers(self):
         if self.exclude_bn_bias:
