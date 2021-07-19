@@ -35,6 +35,10 @@ trainer = pl.Trainer(gpus=1,callbacks=[checkpoint_callback])
 trainer.fit(finetuner, train_loader, valid_loader)
 
 
+#Train on fractions
+# dataset = np.random.rand(100,200)
+# sampler = torch.utils.data.SubsetRandomSampler(list(range(70)))
 
+# loader = torch.utils.data.DataLoader(dataset, sampler=sampler)
 
 
