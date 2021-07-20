@@ -15,7 +15,7 @@ from pl_bolts.transforms.dataset_normalizations import (
     imagenet_normalization,
     stl10_normalization,
 )
-from ContrastiveLoss import ContrastiveLoss
+from ContrastiveLoss import ContrastiveLoss, NTXentLoss
 import numpy as np
 class SyncFunction(torch.autograd.Function):
 
@@ -66,7 +66,7 @@ class SimCLR(LightningModule):
         batch_size: int = 32,
         gpus: int = 1,
         num_nodes: int = 1,
-        arch: str = 'resnet18', #
+        arch: str = 'resnet50', #
         hidden_mlp: int = 2048, #
         feat_dim: int = 128,
         warmup_epochs: int = 10,
@@ -133,17 +133,15 @@ class SimCLR(LightningModule):
     def init_model(self):
         if self.arch == 'resnet18':
             # backbone = resnet.resnet18(mode=self.mode)
-            backbone = resnet.ResNetPreTrained()
+            backbone = resnet.ResNetPreTrained(type='resnet18')
 
         elif self.arch == 'resnet50':
-            backbone = resnet.resnet50(mode=self.mode)
-
+            # backbone = resnet.resnet50(mode=self.mode)
+            backbone = resnet.ResNetPreTrained(type='resnet50')
         return backbone
     
     def forward(self, x):
         x = self.encoder(x)
-        flatten = torch.nn.Flatten()
-        x = flatten(x)
         return self.features(x)
     
     def nt_xent_loss(self, out_1, out_2, temperature, eps=1e-6):

@@ -31,7 +31,7 @@ checkpoint_callback = ModelCheckpoint(
     every_n_train_steps=10
 )
 
-simclr = SimCLR(arch='resnet18')
+simclr = SimCLR(arch='resnet50')
 trainer = pl.Trainer(callbacks=[checkpoint_callback])
 trainer.fit(simclr, train_loader)
 
