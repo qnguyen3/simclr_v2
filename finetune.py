@@ -20,18 +20,18 @@ test_val_data = CIFAR10(root="./cifar10",train = False,transform=val_test_transf
 val_len = test_len = int(len(test_val_data)/2)
 test_data, val_data = torch.utils.data.random_split(test_val_data, [test_len, val_len])
 num_class = len(np.unique(train_data.targets))
-train_loader = DataLoader(dataset = train_data, batch_size = 256, shuffle = True, num_workers = 12, drop_last=True, pin_memory=True)
+train_loader = DataLoader(dataset = train_data, batch_size = 32, shuffle = True, drop_last=True, pin_memory=True)
 test_loader = DataLoader(dataset = test_data, batch_size=32)
 valid_loader = DataLoader(dataset = val_data, batch_size= 32, drop_last=True,pin_memory=True)
 
-finetuner = SSLFineTuner(backbone, in_features=backbone.hidden_mlp, num_classes=num_class, hidden_dim=1024)
+finetuner = SSLFineTuner(backbone, in_features=backbone.hidden_mlp, num_classes=num_class)
 checkpoint_callback = ModelCheckpoint(
     monitor='val_loss',
     dirpath='./models/',
     filename='simclr_finetune-{epoch:02d}-{val_loss:.2f}',
     mode='min',
 )
-trainer = pl.Trainer(gpus=2, accelerator='ddp',callbacks=[checkpoint_callback])
+trainer = pl.Trainer(gpus=1,callbacks=[checkpoint_callback])
 trainer.fit(finetuner, train_loader, valid_loader)
 
 

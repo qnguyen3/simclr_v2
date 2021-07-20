@@ -8,7 +8,7 @@ Mostly copied from: https://github.com/HobbitLong/SupContrast/blob/master/networ
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import torchvision
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -123,7 +123,7 @@ class ResNet(nn.Module):
             self.in_planes = planes * block.expansion
         return nn.Sequential(*layers)
 
-    def forward(self, x, layer=100):
+    def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
         if self.mode == 'cifar':
             out = self.maxpool(out)
@@ -158,3 +158,12 @@ model_dict = {
     'resnet50': [resnet50, 2048],
     'resnet101': [resnet101, 2048],
 }
+
+class ResNetPreTrained(nn.Module):
+    def __init__(self):
+        super(ResNetPreTrained, self).__init__()
+        self.backbone = torchvision.models.resnet18(pretrained=True)
+        modules = list(self.backbone.children())[:-1]
+        self.backbone = nn.Sequential(*modules)
+    def forward(self, x):
+        return self.backbone(x)

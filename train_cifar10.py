@@ -6,7 +6,7 @@ from torchvision.datasets import CIFAR10
 from torch.utils.data.dataloader import DataLoader
 from SimCLR import SimCLR
 import pytorch_lightning as pl
-
+CUDA_LAUNCH_BLOCKING=1
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pl_bolts.models.self_supervised.simclr import SimCLRTrainDataTransform, SimCLREvalDataTransform
 
@@ -19,7 +19,7 @@ train_len = len(train_data)
 val_len = test_len = int(len(test_val_data)/2)
 test_data, val_data = torch.utils.data.random_split(test_val_data, [test_len, val_len])
 num_class = len(np.unique(train_data.targets))
-train_loader = DataLoader(dataset = train_data, batch_size = 16, shuffle = True, drop_last=True, pin_memory=False, num_workers=16)
+train_loader = DataLoader(dataset = train_data, batch_size = 4, shuffle = True, drop_last=True, pin_memory=True)
 test_loader = DataLoader(dataset = test_data, batch_size = 16)
 valid_loader = DataLoader(dataset = val_data, batch_size= 16)
 
@@ -31,7 +31,7 @@ checkpoint_callback = ModelCheckpoint(
     every_n_train_steps=10
 )
 
-simclr = SimCLR(gpus=2)
-trainer = pl.Trainer(gpus=2, accelerator='ddp', callbacks=[checkpoint_callback])
+simclr = SimCLR(arch='resnet18')
+trainer = pl.Trainer(callbacks=[checkpoint_callback])
 trainer.fit(simclr, train_loader)
 
