@@ -25,13 +25,13 @@ valid_loader = DataLoader(dataset = val_data, batch_size= 16)
 
 checkpoint_callback = ModelCheckpoint(
     dirpath='./models/',
+    monitor = 'avg_train_loss',
     filename='simclr-{epoch:02d}-{avg_train_loss:.2f}',
     mode='min',
     save_last=True,
-    every_n_train_steps=10
 )
 
-simclr = SimCLR(arch='resnet50')
-trainer = pl.Trainer(callbacks=[checkpoint_callback])
+simclr = SimCLR(arch='resnet50',gpus=1)
+trainer = pl.Trainer(gpus=callbacks=[checkpoint_callback])
 trainer.fit(simclr, train_loader)
 
