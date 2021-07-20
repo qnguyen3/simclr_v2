@@ -163,7 +163,7 @@ class ResNetPreTrained(nn.Module):
     def __init__(self, type='resnet50'):
         super(ResNetPreTrained, self).__init__()
         self.backbone = torchvision.models.resnet50(pretrained=True)
-        if type='resnet18':
+        if type=='resnet18':
             self.backbone = torchvision.models.resnet18(pretrained=True)
         modules = list(self.backbone.children())[:-1]
         self.backbone = nn.Sequential(*modules)
