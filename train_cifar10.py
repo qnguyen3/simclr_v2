@@ -17,7 +17,7 @@ val_test_transform = get_simclr_data_transforms_test('cifar10')
 train_data = CIFAR10(download=True,root="./cifar10",transform=MultiViewDataInjector([train_transform,train_transform,val_test_transform]))
 train_len = len(train_data)
 num_class = len(np.unique(train_data.targets))
-train_loader = DataLoader(dataset = train_data, batch_size = 16)
+train_loader = DataLoader(dataset = train_data, batch_size = 1024, num_workers=48)
 # test_loader = DataLoader(dataset = test_data, batch_size = 16)
 # valid_loader = DataLoader(dataset = val_data, batch_size= 16)
 
