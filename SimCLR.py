@@ -123,9 +123,9 @@ class SimCLR(LightningModule):
             self.batch_norm1d = nn.BatchNorm1d(self.hidden_mlp)
             self.projection = Projection(input_dim=self.hidden_mlp, hidden_dim=self.hidden_mlp, output_dim=self.feat_dim)
         elif arch == 'resnet18':
-            self.features = nn.Linear(512, self.hidden_mlp) #First Projection Head
-            self.batch_norm1d = nn.BatchNorm1d(self.hidden_mlp)
-            self.projection = Projection(input_dim=self.hidden_mlp, hidden_dim=self.hidden_mlp, output_dim=self.feat_dim)
+            self.features = nn.Linear(512, 512) #First Projection Head
+            self.batch_norm1d = nn.BatchNorm1d(512)
+            self.projection = Projection(input_dim=512, hidden_dim=512, output_dim=self.feat_dim)
 
         global_batch_size = self.num_nodes * self.gpus * self.batch_size if self.gpus > 0 else self.batch_size
         self.train_iters_per_epoch = self.num_samples // global_batch_size
@@ -133,7 +133,7 @@ class SimCLR(LightningModule):
     def init_model(self):
         if self.arch == 'resnet18':
             # backbone = resnet.resnet18(mode=self.mode)
-            backbone = resnet.ResNetPreTrained()
+            backbone = resnet.resnet18(mode=self.mode)
 
         elif self.arch == 'resnet50':
             backbone = resnet.resnet50(mode=self.mode)
