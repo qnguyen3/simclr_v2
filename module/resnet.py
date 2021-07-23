@@ -78,7 +78,7 @@ class ResNet(nn.Module):
         super(ResNet, self).__init__()
         self.in_planes = 64
         self.mode = mode
-        if self.mode == 'cifar':
+        if self.mode == 'cifar10':
             self.conv1 = nn.Conv2d(in_channel, 64, kernel_size=3, stride=1, padding=1,
                                 bias=False)
             self.bn1 = nn.BatchNorm2d(64)
@@ -125,8 +125,8 @@ class ResNet(nn.Module):
 
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
-        if self.mode == 'cifar':
-            out = self.maxpool(out)
+        # if self.mode == 'cifar10':
+        #     out = self.maxpool(out)
         out = self.layer1(out)
         out = self.layer2(out)
         out = self.layer3(out)

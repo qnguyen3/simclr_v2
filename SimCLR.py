@@ -137,7 +137,7 @@ class SimCLR(LightningModule):
 
         elif self.arch == 'resnet50':
             # backbone = resnet.resnet50(mode=self.mode)
-            backbone = resnet.ResNetPreTrained(type='resnet50')
+            backbone = resnet.resnet50(type='resnet50')
         return backbone
     
     def forward(self, x):
