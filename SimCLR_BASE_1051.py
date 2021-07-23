@@ -15,7 +15,7 @@ from pl_bolts.transforms.dataset_normalizations import (
     imagenet_normalization,
     stl10_normalization,
 )
-from ContrastiveLoss import ContrastiveLoss, NTXentLoss
+from ContrastiveLoss import ContrastiveLoss
 import numpy as np
 class SyncFunction(torch.autograd.Function):
 
@@ -66,7 +66,7 @@ class SimCLR(LightningModule):
         batch_size: int = 32,
         gpus: int = 1,
         num_nodes: int = 1,
-        arch: str = 'resnet50', #
+        arch: str = 'resnet18', #
         hidden_mlp: int = 2048, #
         feat_dim: int = 128,
         warmup_epochs: int = 10,
@@ -123,9 +123,9 @@ class SimCLR(LightningModule):
             self.batch_norm1d = nn.BatchNorm1d(self.hidden_mlp)
             self.projection = Projection(input_dim=self.hidden_mlp, hidden_dim=self.hidden_mlp, output_dim=self.feat_dim)
         elif arch == 'resnet18':
-            self.features = nn.Linear(512, 512) #First Projection Head
-            self.batch_norm1d = nn.BatchNorm1d(512)
-            self.projection = Projection(input_dim=512, hidden_dim=512, output_dim=self.feat_dim)
+            self.features = nn.Linear(512, self.hidden_mlp) #First Projection Head
+            self.batch_norm1d = nn.BatchNorm1d(self.hidden_mlp)
+            self.projection = Projection(input_dim=self.hidden_mlp, hidden_dim=self.hidden_mlp, output_dim=self.feat_dim)
 
         global_batch_size = self.num_nodes * self.gpus * self.batch_size if self.gpus > 0 else self.batch_size
         self.train_iters_per_epoch = self.num_samples // global_batch_size
@@ -133,15 +133,17 @@ class SimCLR(LightningModule):
     def init_model(self):
         if self.arch == 'resnet18':
             # backbone = resnet.resnet18(mode=self.mode)
-            backbone = resnet.resnet18(mode=self.mode)
+            backbone = resnet.ResNetPreTrained()
 
         elif self.arch == 'resnet50':
-            # backbone = resnet.resnet50(mode=self.mode)
-            backbone = resnet.ResNetPreTrained(type='resnet50')
+            backbone = resnet.resnet50(mode=self.mode)
+
         return backbone
     
     def forward(self, x):
         x = self.encoder(x)
+        flatten = torch.nn.Flatten()
+        x = flatten(x)
         return self.features(x)
     
     def nt_xent_loss(self, out_1, out_2, temperature, eps=1e-6):
